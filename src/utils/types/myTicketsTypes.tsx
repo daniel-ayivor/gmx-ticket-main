@@ -1,0 +1,40 @@
+type myTicketType = {
+    id: number;
+    event: {
+      id: number;
+      title: string;
+      description: string;
+      start_date: string;
+      end_date: string;
+      duration: string;
+      is_free: boolean;
+      venue: string;
+      venue_address: string;
+      category: {
+        id: number;
+        name: string;
+        description: string;
+        icon: string;
+        is_active: boolean;
+        event_count: string;
+        created_at: string;
+        updated_at: string;
+      };
+      category_id: number;
+      age_restriction: number;
+      schedule: string;
+      artists_list: string[];
+      sponsors_list: string[];
+      facilities_list: string[];
+      highlights_list: string[];
+      featured: boolean;
+      created_at: string;
+      updated_at: string;
+      min_ticket_price: string;
+    };
+    ticket_type: number;
+    price: string;
+    quantity: number;
+    available_quantity: string;
+    orders_count: string;
+  };
