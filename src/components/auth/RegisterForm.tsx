@@ -8,11 +8,12 @@ import { Mail, Lock, User, Loader2, EyeOff, Eye } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useCookies } from "react-cookie";
-import { registerSchema } from "@/utils/zod";
-import {  BASE_URL } from "@/utils/api/authApi";
+import { registerSchema } from "@/utils/zod"
 import gmxLogo from '../../../public/image/logoVerticalReverse.png'
 import { SubmitHandler, useForm } from "react-hook-form";
 import Image from "next/image";
+import { API_URL } from "../../../common"
+import { useLoginModal } from "@/lib/context/AuthContext";
 
 type FormData = {
   username: string;
@@ -23,9 +24,11 @@ type FormData = {
   last_name: string;
 };
 
-export const RegisterForm = ({ onToggle }: { onToggle: () => void }) => {
+export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { openLoginModal } = useLoginModal();
+
   const {
     register,
     formState: { isSubmitting, errors },
@@ -38,7 +41,7 @@ export const RegisterForm = ({ onToggle }: { onToggle: () => void }) => {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     console.log("Form Data:", data); // Debugging: Log form data
     try {
-      const response = await axios.post(`${BASE_URL}auth/register/`, data, {
+      const response = await axios.post(`${API_URL.BASE_URL}auth/register/`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -91,45 +94,59 @@ export const RegisterForm = ({ onToggle }: { onToggle: () => void }) => {
   console.log("Form Errors:", errors); // Debugging: Log form errors
 
   return (
-    <div className="w-full max-w-md p-8 backdrop-blur-xl bg-black/30 rounded-xl border border-white/10 shadow-2xl animate-fadeIn">
-      <div className="flex flex-col items-center justify-center ">
-        <Image src={gmxLogo} alt="" className="h-16 w-28" />
-        <h2 className="text-xl font-bold text-white mb-6 text-center">Create Account</h2>
-
+    <div className="w-full max-w-md p-8 backdrop-blur-xl bg-black/90 rounded-xl border border-white/10 shadow-2xl animate-fadeIn">
+      <div className="flex flex-col items-center justify-center space-y-3">
+        <Image
+          src={gmxLogo}
+          alt="GMX Logo"
+          className="h-16 w-28 animate-fadeIn"
+          priority
+        />
+        <h2 className="text-2xl font-bold text-white">Create Account</h2>
+        <p className="text-gray-400 text-sm text-center">
+          Join GMX Tickets and start your journey with us
+        </p>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-        {/* Username Field */}
-        <div className="space-y-1">
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+        <div className="space-y-2">
           <Label htmlFor="username" className="text-white">
-            User Name
+            Username
           </Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="username"
               type="text"
-              placeholder="Enter your user name"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              placeholder="Choose a username"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("username", {
                 required: "Username is required",
+                minLength: {
+                  value: 3,
+                  message: "Username must be at least 3 characters",
+                },
               })}
             />
-            {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.username.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Email Field */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="email" className="text-white">
             Email
           </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="email"
               type="email"
               placeholder="Enter your email"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("email", {
                 required: "Email is required",
                 pattern: {
@@ -138,127 +155,106 @@ export const RegisterForm = ({ onToggle }: { onToggle: () => void }) => {
                 },
               })}
             />
-            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.email.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* First Name Field */}
-        <div className="space-y-1">
-          <Label htmlFor="first_name" className="text-white">
-            First Name
-          </Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-            <Input
-              id="first_name"
-              type="text"
-              placeholder="Enter your first name"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              {...register("first_name", {
-                required: "First name is required",
-              })}
-            />
-            {errors.first_name && <p className="text-red-500 text-sm">{errors.first_name.message}</p>}
-          </div>
-        </div>
-
-        {/* Last Name Field */}
-        <div className="space-y-1">
-          <Label htmlFor="last_name" className="text-white">
-            Last Name
-          </Label>
-          <div className="relative">
-            <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-            <Input
-              id="last_name"
-              type="text"
-              placeholder="Enter your last name"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              {...register("last_name", {
-                required: "Last name is required",
-              })}
-            />
-            {errors.last_name && <p className="text-red-500 text-sm">{errors.last_name.message}</p>}
-          </div>
-        </div>
-
-        {/* Password Field */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="password" className="text-white">
             Password
           </Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Create a password"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("password", {
                 required: "Password is required",
                 minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-                pattern: {
-                  value: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/,
-                  message: "Password must contain at least one letter and one number",
+                  value: 8,
+                  message: "Password must be at least 8 characters",
                 },
               })}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors duration-300"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
-            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.password.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Confirm Password Field */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <Label htmlFor="password_confirm" className="text-white">
             Confirm Password
           </Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="password_confirm"
               type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirm password"
-              className="pl-10 bg-white/10 border-white/20 mb-4 text-white placeholder:text-gray-400"
+              placeholder="Confirm your password"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("password_confirm", {
-                required: "Confirm password is required",
+                required: "Please confirm your password",
                 validate: validateConfirmPassword,
               })}
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-3 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors duration-300"
             >
-              {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
-            {errors.password_confirm && <p className="text-red-500 text-sm">{errors.password_confirm.message}</p>}
+            {errors.password_confirm && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.password_confirm.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full bg-white hover:bg-white/70 text-black mt-2 transition-all"
+          className="w-full bg-[#e30045] hover:bg-[#e30045]/90 text-white transition-all duration-300 hover:shadow-lg hover:shadow-[#e30045]/20"
           disabled={isSubmitting}
         >
-          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign Up"}
+          {isSubmitting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            "Create Account"
+          )}
         </Button>
       </form>
 
-      {/* Toggle to Login */}
-      <p className="mt-6 text-center text-sm text-gray-300">
+      <p className="mt-6 text-center text-sm text-gray-400">
         Already have an account?{" "}
-        <button onClick={onToggle} className="text-white hover:underline focus:outline-none">
+        <button
+          onClick={openLoginModal}
+          className="text-[#e30045] hover:text-[#e30045]/80 font-medium transition-colors duration-300 focus:outline-none hover:underline"
+        >
           Sign in
         </button>
       </p>

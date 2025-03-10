@@ -21,15 +21,16 @@ import {
 import { MdEventSeat } from "react-icons/md";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"
 import Image from "next/image";
 import { initializeHubtelPayment } from "@/utils/payment";
 import { toast } from "react-hot-toast";
-import { EventType, OrderType, TicketType } from "@/utils/types/eventTypes";
-import { BASE_URL } from "@/utils/api/authApi";
+import { EventType, OrderType, TicketType } from "@/utils/types/eventTypes"
 import moment from "moment";
 import DOMPurify from "dompurify";
-import { useAuth } from "../../../../hooks/useAuth";
+import { useAuth } from "../../../hooks/useAuth"
+import { useFetchData } from "../../../hooks/useData"
+import { API_URL } from "../../../../common"
 interface EventDetailProps {
   id: string;
 }
@@ -42,70 +43,18 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { user } = useAuth()
-  // Find event data (replace with API call in production
 
-  const [event, setEvent] = useState<EventType>();
-  const [eventsTickets, setEventsTickets] = useState<TicketType[]>([]);
   const [order, setOrder] = useState<OrderType>()
-  const [loading, setLoading] = useState<boolean>(true);
 
+  const {
+    data: event,
+    isLoading,
+  } = useFetchData<EventType>(`events/${id}`)
 
-  console.log(user, "user token")
-  const fetchEvent = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}events/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
-
-      const data: EventType = await response.json();
-
-      if (response.ok && data?.id) {
-        setEvent(data)
-      }
-    } catch (error) {
-      // 
-    } finally {
-      setLoading(false)
-    }
-  };
-
-  useEffect(() => {
-    fetchEvent()
-  }, [])
-
-
-  const fetchAllEventsTickets = async () => {
-    try {
-      const response = await fetch(`${BASE_URL}events/${id}/tickets/`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
-
-      const data: TicketType[] = await response.json();
-
-      if (response.ok && data) {
-        setEventsTickets(data)
-      }
-    } catch (error) {
-      // 
-    } finally {
-      setLoading(false)
-    }
-
-  };
-
-  useEffect(() => {
-    fetchAllEventsTickets();
-  }, []);
+  const {
+    data: tickets,
+    isLoading: ticketsLoading,
+  } = useFetchData<TicketType[]>(`events/${id}/tickets/`)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -132,7 +81,7 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
       };
 
       // Send the POST request to create the order
-      const response = await fetch(`${BASE_URL}orders/`, {
+      const response = await fetch(`${API_URL.BASE_URL}orders/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -157,21 +106,17 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
       console.error("Error creating order:", error);
       toast.error("An error occurred while creating the order.");
     } finally {
-      setLoading(false);
     }
   };
 
-
   // handle tickets
   const handleBuyTickets = async () => {
-   
     if (!user) {
       toast.error("Please log in to proceed with payment.");
       router.push("/login");
       return;
     }
-    console.log(selectedTicket, "selected Tickets")
-
+    
     if (!selectedTicket) {
       // toast.error("Please select a ticket type.");
       return;
@@ -199,53 +144,9 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
       setIsProcessing(false);
     }
   };
-  // const handleBuyTickets = async () => {
-  //   // if (!selectedTicket) {
-  //   //   toast.error('Please select a ticket type')
-  //   //   return
-  //   // }
-
-  //   try {
-  //     setIsProcessing(true);
-
-  //     if (!selectedTicket) {
-  //       toast.error("Invalid ticket type");
-  //       return;
-  //     }
 
 
-
-  //     await initializeHubtelPayment({
-  //       totalAmount: parseFloat(selectedTicket.price),
-  //       description: selectedTicket?.ticket_type?.description,
-  //       eventTitle: event?.title!,
-  //       ticketType: selectedTicket?.ticket_type?.name,
-  //     });
-
-  //     // Note: No need to handle redirect here as initializeHubtelPayment will handle it
-  //   } catch (error) {
-  //     console.error("Payment initialization failed:", error);
-  //     toast.error("Unable to process payment. Please try again.");
-  //   } finally {
-  //     setIsProcessing(false);
-  //   }
-  // };
-
-  // if (!event?.id && !loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <Typography variant="h4" className="mb-2">
-  //           Event Not Found
-  //         </Typography>
-  //         <Button onClick={() => router.push("/events")}>Back to Events</Button>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black">
         <Navbar _isScrolling={true} />
@@ -278,9 +179,9 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
             <Button
               className={` ${selectedTicket ? "bg-[#e30045]" : "bg-primary"}`}
               onClick={() => {
-                // setSelectedTicket();
-                // handleBuyTickets();
-                // document.getElementById('tickets')?.scrollIntoView({ behavior: 'smooth' })
+                setSelectedTicket(tickets?.[0]!);
+                handleBuyTickets();
+                document.getElementById('tickets')?.scrollIntoView({ behavior: 'smooth' })
               }}
             >
               {isProcessing ? (
@@ -352,8 +253,8 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
                   size="lg"
                   className="bg-primary flex-1"
                   onClick={() => {
-                    // setSelectedTicket("Regular");
-                    // handleBuyTickets();
+                    setSelectedTicket(tickets?.[0]!)
+                    handleBuyTickets();
                   }}
                 >
                   {isProcessing ? (
@@ -584,7 +485,7 @@ const NewEventDetailPage = ({ id }: EventDetailProps) => {
                 {activeTab === "tickets" && (
                   <div id="tickets" className="max-w-3xl mx-auto">
                     <div className="space-y-6">
-                      {eventsTickets?.map((ticket) => (
+                      {tickets?.map((ticket) => (
                         <div
                           key={ticket.id}
                           className={`bg-white/5 backdrop-blur-sm rounded-xl p-6 cursor-pointer transition-all ${selectedTicket?.id === ticket?.id

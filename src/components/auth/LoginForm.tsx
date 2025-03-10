@@ -11,15 +11,18 @@ import { toast } from "react-hot-toast";
 import { SubmitHandler, useForm } from "react-hook-form";
 import gmxLogo from '../../../public/image/logoVerticalReverse.png'
 import Image from "next/image";
-import { BASE_URL } from "@/utils/api/authApi";
+import { API_URL } from "../../../common"
+import { useLoginModal } from "@/lib/context/AuthContext";
+
 type FormData = {
   username: string; // Change from `email` to `username`
   password: string;
 };
 
-export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
+export const LoginForm = () => {
   const [cookies, setCookie] = useCookies(["user", "accesstoken"]);
   const [showPassword, setShowPassword] = useState(false);
+  const { openRegisterModal } = useLoginModal();
 
   const {
     register,
@@ -33,11 +36,9 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
   });
 
   const onSubmit: SubmitHandler<FormData> = async (data) => {
-
     try {
-      // Make the API request using Axios
       const response = await axios.post(
-        `${BASE_URL}auth/login/`,
+        `${API_URL.BASE_URL}auth/login/`,
         {
           username: data.username,
           password: data.password,
@@ -50,107 +51,99 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
         }
       );
 
-      // Store user data and tokens in cookies
       if (response.data?.access && response.data?.refresh) {
         const { access, refresh } = response.data;
 
-        console.log("Access token:", access);
-        const res = await fetch(`${BASE_URL}users/profile/`, {
+        const res = await fetch(`${API_URL.BASE_URL}users/profile/`, {
           headers: {
             accept: "application/json",
             Authorization: `${access}`,
           },
           credentials: 'include'
-
         });
 
         const user = await res.json();
-
         let userData = {
           ...user,
           access_token: access,
           refresh_token: refresh
-        }
+        };
 
-        // Store user data in cookies
         setCookie("user", userData, {
           path: "/",
-          maxAge: 2592000, // 30 days
+          maxAge: 2592000,
           secure: true,
           sameSite: "strict",
         });
 
         setCookie("accesstoken", access, {
           path: "/",
-          maxAge: 2592000, // 30 days
+          maxAge: 2592000,
           secure: true,
           sameSite: "strict",
         });
 
-        // // Store tokens in local storage (optional)
         localStorage.setItem("accessToken", response.data.access);
         localStorage.setItem("refreshToken", response.data.refresh);
 
-        // Redirect to the dashboard
         window.location.replace("/dashboard");
-      } else {
-        // show toast
       }
     } catch (error) {
       console.error("Unexpected error:", error);
-      // if (axios.isAxiosError(error)) {
-      //   // Handle Axios errors
-      //   console.log("Login failed:", error.response?.data);
-      //   toast.error(`Login failed: ${error.response?.data.message || "Unknown error"}`);
-      // } else {
-
-      //   console.error("Unexpected error:", error);
-      //   alert("An unexpected error occurred.");
-      // }
+      toast.error("Login failed. Please check your credentials.");
     }
   };
 
   return (
-    <div className="w-full max-w-md p-8 backdrop-blur-xl bg-black/30 rounded-xl border border-white/10 shadow-2xl animate-fadeIn">
-      <div className="flex flex-col items-center justify-center ">
-        <Image src={gmxLogo} alt="" className="h-16 w-28" />
-        <h2 className="text-xl font-bold text-white mb-6 mt-2">Welcome Back</h2>
+    <div className="w-full max-w-md p-8 backdrop-blur-xl bg-black/90 rounded-xl border border-white/10 shadow-2xl animate-fadeIn">
+      <div className="flex flex-col items-center justify-center space-y-3">
+        <Image
+          src={gmxLogo}
+          alt="GMX Logo"
+          className="h-16 w-28 animate-fadeIn"
+          priority
+        />
+        <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
+        <p className="text-gray-400 text-sm text-center">
+          Sign in to access your account and manage your tickets
+        </p>
       </div>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Username Field */}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
         <div className="space-y-2">
           <Label htmlFor="username" className="text-white">
-            User name
+            Username
           </Label>
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="username"
               type="text"
-              placeholder="Enter your user name"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              required
+              placeholder="Enter your username"
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("username", {
                 required: "Username is required",
               })}
             />
-            {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
+            {errors.username && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.username.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Password Field */}
         <div className="space-y-2">
           <Label htmlFor="password" className="text-white">
             Password
           </Label>
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+          <div className="relative group">
+            <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400 transition-colors duration-300 group-focus-within:text-[#e30045]" />
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-              required
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-gray-400 transition-all duration-300 focus:border-[#e30045] focus:ring-[#e30045]/50"
               {...register("password", {
                 required: "Password is required",
               })}
@@ -158,28 +151,41 @@ export const LoginForm = ({ onToggle }: { onToggle: () => void }) => {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-3 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-3 text-gray-400 hover:text-white transition-colors duration-300"
             >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
             </button>
-            {errors.password && <p className="text-red-500 text-sm">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1 animate-slideIn">
+                {errors.password.message}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Submit Button */}
         <Button
           type="submit"
-          className="w-full bg-white hover:bg-white/90 text-black transition-all"
+          className="w-full bg-[#e30045] hover:bg-[#e30045]/90 text-white transition-all duration-300 hover:shadow-lg hover:shadow-[#e30045]/20"
           disabled={isSubmitting}
         >
-          {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Sign In"}
+          {isSubmitting ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </form>
 
-      {/* Toggle to Sign Up */}
-      <p className="mt-6 text-center text-sm text-gray-300">
+      <p className="mt-6 text-center text-sm text-gray-400">
         Don't have an account?{" "}
-        <button onClick={onToggle} className="text-white hover:underline focus:outline-none">
+        <button
+          onClick={openRegisterModal}
+          className="text-[#e30045] hover:text-[#e30045]/80 font-medium transition-colors duration-300 focus:outline-none hover:underline"
+        >
           Sign up
         </button>
       </p>

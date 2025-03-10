@@ -14,12 +14,12 @@ const EventListingCard = (event: EventType) => {
   return (
     <div
       className="group cursor-pointer bg-white/5 backdrop-blur-sm rounded-xl overflow-hidden"
-      onClick={() => router.push(`/events/${event.id}`)}
+      onClick={() => router.push(`/events/${event?.id}`)}
     >
       <div className="relative h-[300px]">
         <Image
           src={"https://ghanamusic.com/wp-content/uploads/2024/09/GXlh_9kXEAARrv8.jpeg"} // Fallback image
-          alt={event.title}
+          alt={event?.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
@@ -36,19 +36,19 @@ const EventListingCard = (event: EventType) => {
             {event?.artists_list?.[0] || "Artist Name"}
           </div>
           <div className="bg-white/10 capitalize text-green-300 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
-            {event?.is_free ? "Free" : `from ₵${event.min_ticket_price}`}
+            {event?.is_free ? "Free" : `from ₵${event?.min_ticket_price}`}
           </div>
         </div>
         <h3 className="text-xl font-bold text-white mb-3">
-          {event.title}
+          {event?.title}
         </h3>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 text-gray-400 text-sm">
             <div className="flex items-center">
-              <FiCalendar className="mr-1" /> {moment(event.start_date).format('MMMM Do YYYY, h:mm:ss a')}
+              <FiCalendar className="mr-1" /> {moment(event?.start_date).format('MMMM Do YYYY, h:mm:ss a')}
             </div>
             <div className="flex items-center">
-              <FiMapPin className="mr-1" /> {event.venue}
+              <FiMapPin className="mr-1" /> {event?.venue}
             </div>
           </div>
         </div>

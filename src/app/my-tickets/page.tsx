@@ -12,42 +12,12 @@ import { QRCodeSVG } from 'qrcode.react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { FaCediSign } from "react-icons/fa6";
-import { BASE_URL } from '@/utils/api/authApi'
-import { useAuth } from '../../../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
 import moment from 'moment'
 import { TbCircleDashedNumber1 } from "react-icons/tb";
-// Mock data - replace with actual API call
-const MOCK_TICKETS = [
-  {
-    id: 1,
-    eventTitle: "Afrochella 2024",
-    ticketType: "VIP",
-    date: "Dec 28, 2023",
-    time: "7:00 PM",
-    location: "El-Wak Sports Stadium",
-    reference: "inv12345",
-    amount: 700,
-    image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2400&q=80",
-    status: "upcoming",
-    description: "Experience the best of African music, art, fashion, and culture at Afrochella 2024.",
-    seat: "VIP Section A, Row 2"
-  },
-  {
-    id: 2,
-    eventTitle: "Ghana Music Awards",
-    ticketType: "VVIP",
-    date: "Jan 6, 2024",
-    time: "6:30 PM",
-    location: "Grand Arena",
-    reference: "inv67890",
-    amount: 600,
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2400&q=80",
-    status: "upcoming",
-    description: "Celebrate the best in Ghanaian music at the annual Ghana Music Awards.",
-    seat: "VVIP Section B, Row 1"
-  }
-]
+import { API_URL } from '../../../common'
+
 
 export default function MyTicketsPage() {
   const router = useRouter()
@@ -65,7 +35,7 @@ export default function MyTicketsPage() {
 
   const fetchMyTicket = async () => {
     try {
-      const response = await fetch(`${BASE_URL}tickets/user_tickets/`, {
+      const response = await fetch(`${API_URL.BASE_URL}tickets/user_tickets/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -91,13 +61,6 @@ export default function MyTicketsPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (user?.access_token) {
-      fetchMyTicket();
-    }
-  }, [user?.access_token]);
-
 
   // Helper function to check if an event is upcoming
   const isUpcomingEvent = (startDate: string) => {
